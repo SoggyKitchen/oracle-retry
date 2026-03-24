@@ -2,7 +2,7 @@ name: Oracle A1 Instance Creator
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 jobs:
