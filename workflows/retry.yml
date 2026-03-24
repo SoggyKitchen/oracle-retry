@@ -1,0 +1,40 @@
+name: Oracle A1 Instance Creator
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'   # every 5 minutes, 24/7, free
+  workflow_dispatch:          # also lets you trigger manually
+
+jobs:
+  create-instance:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install OCI SDK
+        run: pip install oci --quiet
+
+      - name: Write OCI config
+        run: |
+          mkdir -p ~/.oci
+          cat > ~/.oci/config <<EOF
+          [DEFAULT]
+          user=${{ secrets.OCI_USER_OCID }}
+          fingerprint=${{ secrets.OCI_FINGERPRINT }}
+          tenancy=${{ secrets.OCI_TENANCY_OCID }}
+          region=ap-sydney-1
+          key_file=/home/runner/.oci/key.pem
+          EOF
+          printf '%s' "${{ secrets.OCI_PRIVATE_KEY }}" > ~/.oci/key.pem
+          chmod 600 ~/.oci/key.pem
+
+      - name: Attempt instance creation
+        env:
+          OCI_COMPARTMENT_ID: ${{ secrets.OCI_COMPARTMENT_ID }}
+          SSH_PUBLIC_KEY:     ${{ secrets.SSH_PUBLIC_KEY }}
+        run: python create_instance.py
