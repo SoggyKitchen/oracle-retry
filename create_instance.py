@@ -19,8 +19,8 @@ COMPARTMENT_ID = os.environ['OCI_COMPARTMENT_ID']
 SSH_KEY        = os.environ['SSH_PUBLIC_KEY']
 DISPLAY_NAME   = 'minecraft-server'
 SHAPE          = 'VM.Standard.A1.Flex'
-OCPUS          = 4
-MEMORY_GB      = 24
+OCPUS          = 2
+MEMORY_GB      = 12
 BOOT_GB        = 50
  
 config   = oci.config.from_file()
@@ -223,9 +223,11 @@ def main():
             sys.exit(0)
  
         elif 'LimitExceeded' in code:
-            log(f"Resource limit exceeded. You may already have a free-tier instance.")
-            log(f"Check OCI Console → Compute → Instances.")
-            sys.exit(1)
+            if instance_exists():
+                log(f"Resource limit exceeded, but an instance already exists. SUCCESS.")
+                sys.exit(1)
+            log(f"Resource limit exceeded, but no instance exists yet — will retry next run. ({code})")
+            sys.exit(0)
  
         else:
             log(f"Unexpected error [{code}]: {msg}")
